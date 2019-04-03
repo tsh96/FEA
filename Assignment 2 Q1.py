@@ -67,9 +67,11 @@ def calTrusses(trussesElements, constraints, forces, A, E):
     constraints = {Symbol(k): Symbol(v) for k, v in constraints.items()}
     forces = {Symbol(k): v for k, v in forces.items()}
 
-    pprint(Eq(Symbol('K')**Symbol('(G)'), linear_eq_to_matrix([(v - k) for k, v in f.items()], us)[0], evaluate=False))
+    KG, F = linear_eq_to_matrix([(v - k) for k, v in f.items()], us)
+
+    pprint(Eq(Symbol('K')**Symbol('(G)'), KG, evaluate=False))
     print()
-    
+
     pprint(linear_eq_to_matrix([(v - k).subs({k: forces[k]}) if k in forces else ((v - k).subs(
         {k: 0}) if k not in constraints else constraints[k]) for k, v in f.items()], us))
 
@@ -93,11 +95,14 @@ def calTrusses(trussesElements, constraints, forces, A, E):
             pprint((A, y))
             print('\n\n')
 
-    pprint(Eq(Matrix(U), A.inv() * y))
+    UAns = A.inv() * y
+    pprint(Eq(Matrix(U), UAns))
+
+    return Matrix(us).subs({**{u: 0 for u in constraints.values()}, **solve(exprs, U)}), KG
 
 
-calTrusses([
-#   (e, i, j, l,    angle),
+U, KG = calTrusses([
+    #   (e, i, j, l,    angle),
     (1,  1, 2, sqrt(2), 45),
     (2,  1, 3, 1,       0),
     (3,  2, 3, 1,       90),
@@ -121,3 +126,26 @@ calTrusses([
     "f5y": -30e3,
     "f7y": -30e3,
 }, 6e-2 * 6e-2, 13.1e9)
+
+F = Matrix([
+    0,
+    0,
+    0,
+    0,
+    0,
+    -3e4,
+    0,
+    0,
+    0,
+    -3e4,
+    0,
+    0,
+    0,
+    -3e4,
+    0,
+    0
+])
+
+R = UnevaluatedExpr(KG) * UnevaluatedExpr(U) - UnevaluatedExpr(F)
+pprint(R)
+pprint(KG * U - F)
