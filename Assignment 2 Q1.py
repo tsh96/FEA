@@ -182,7 +182,7 @@ def solveTrussesProblem(*dicts, boundaryConditions, area, Ev, precision=5):
         ni = elem['ni']
         nj = elem['nj']
         angle = rad(elem['angle'])
-        length = rad(elem['length'])
+        length = elem['length']
         invTMatrix = N(Matrix([
             [cos(angle),  sin(angle), 0, 0],
             [-sin(angle), cos(angle), 0, 0],
